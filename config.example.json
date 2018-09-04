@@ -2,7 +2,7 @@
     "token":"insertBotToken",
     
     "host":"localhost",
-    "user":"user",
+    "username":"user",
     "password":"password",
     "database": "monocle",
 
