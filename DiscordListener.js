@@ -20,6 +20,12 @@ bot.login(config.token);
 
 bot.on('ready', () => {
 
+    var guildsFetched = [];
+    for(var guild in config.guilds)
+    {
+        guildsFetched.push(bot.guilds.get(guild).fetchMembers());
+    }
+
     SQLConnect().then(result => {
         sqlConnection.query("UPDATE users SET access_level=0", function(err, result) {
             if(err)
@@ -31,8 +37,11 @@ bot.on('ready', () => {
                 }
             }
             console.log("SQL Query successful");
-            CheckAllGuilds();
-            UpdateAllUsers();  
+
+            Promise.all(guildsFetched).then(fetched => {
+                CheckAllGuilds();
+                UpdateAllUsers();  
+            });
         });             
     });
 });
@@ -65,6 +74,7 @@ function CheckAllGuilds()
                 }
             });
         }
+        
     }
 }
 
@@ -97,9 +107,15 @@ function ApproveUser(userID, accessLevel, name)
 
     // REPLACE NON ASCII CHARACTERS
     name = name.replace(/[^\x00-\x7F]/g, "");
-    
-    var sqlStatement = "INSERT INTO users (id,user,access_level,expire_timestamp,login_system) VALUES ("+userID+",'"+name+"',"+accessLevel+",1,'discord') ON DUPLICATE KEY UPDATE user=VALUES(user),access_level=VALUES(access_level),login_system=VALUES(login_system);";
-    console.log(sqlStatement);
+    var sqlStatement;
+    if(accessLevel > 0)
+    {
+        sqlStatement = "INSERT INTO users (id,user,access_level,expire_timestamp,login_system) VALUES ("+userID+",\""+name+"\","+accessLevel+",1,'discord') ON DUPLICATE KEY UPDATE user=VALUES(user),access_level=VALUES(access_level),login_system=VALUES(login_system);";
+    }
+    else
+    {
+        sqlStatement = "INSERT INTO users (id,user,access_level,expire_timestamp,login_system, session_id) VALUES ("+userID+",\""+name+"\","+accessLevel+",1,'discord', NULL) ON DUPLICATE KEY UPDATE user=VALUES(user),access_level=VALUES(access_level),login_system=VALUES(login_system),expire_timestamp=VALUES(expire_timestamp),session_id=VALUES(session_id);";
+    }    
     sqlConnection.query(sqlStatement, function(err, result) {
         if(err)
         {            
@@ -186,6 +202,13 @@ bot.on('guildMemberRemove', member => {
 
     UpdateUser(member.user.id);
 
+});
+
+bot.on('guildMemberAdd', member => {
+    let guild = member.guild.id;
+    if(!config.guilds[guild]) { return; }
+
+    UpdateMember(member);
 });
 
 bot.on('guildMemberUpdate', (oldMember, newMember) => {
