@@ -3,6 +3,7 @@
     
     "host":"localhost",
     "username":"user",
+    "port":"3306",
     "password":"password",
     "database": "monocle",
 

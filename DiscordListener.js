@@ -7,6 +7,7 @@ const config = require('./config.json');
 var sqlConnection = mysql.createConnection({
     host: config.host,
     user: config.username,
+    port: config.port,
     password: config.password,
     database: config.database,
     supportBigNumbers: true
