@@ -218,7 +218,7 @@ bot.on('guildMemberUpdate', (oldMember, newMember) => {
 
 // CHECK ALL USERS ONCE AN HOUR JUST IN CASE
 ontime({
-    cycle: ['00:00']
+    cycle: ['00:00:00']
 }, function (ot) {
     sqlConnection.query("UPDATE users SET access_level=0", function(err, result) {
         if(err)
