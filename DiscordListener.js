@@ -28,7 +28,7 @@ bot.on('ready', () => {
     }
 
     SQLConnect().then(result => {
-        sqlConnection.query("UPDATE users SET access_level=0", function(err, result) {
+        sqlConnection.query("UPDATE users SET access_level=0 where login_system=discord", function(err, result) {
             if(err)
             {            
                 console.log(err.stack);
@@ -220,7 +220,49 @@ bot.on('guildMemberUpdate', (oldMember, newMember) => {
 ontime({
     cycle: ['00:00:00']
 }, function (ot) {
-    sqlConnection.query("UPDATE users SET access_level=0", function(err, result) {
+    sqlConnection.query("UPDATE users SET access_level=0 where login_system=discord", function(err, result) {
+        if(err)
+        {            
+            console.log(err.stack);
+            if(err.code==="PROTOCOL_CONNECTION_LOST")
+            {
+                SQLConnect();
+            }
+        }
+        console.log("SQL Query successful");
+        CheckAllGuilds();
+        UpdateAllUsers();  
+    });  
+    ot.done();
+    return;
+});
+
+// CHECK ALL USERS ONCE AN HOUR JUST IN CASE
+ontime({
+    cycle: ['00:00:00']
+}, function (ot) {
+    sqlConnection.query("UPDATE users SET access_level=0 where login_system=native and expire_timestamp<unix_timestamp(now())", function(err, result) {
+        if(err)
+        {            
+            console.log(err.stack);
+            if(err.code==="PROTOCOL_CONNECTION_LOST")
+            {
+                SQLConnect();
+            }
+        }
+        console.log("SQL Query successful");
+        CheckAllGuilds();
+        UpdateAllUsers();  
+    });  
+    ot.done();
+    return;
+});
+
+// CHECK ALL USERS ONCE AN HOUR JUST IN CASE
+ontime({
+    cycle: ['00:00:00']
+}, function (ot) {
+    sqlConnection.query("UPDATE users SET access_level=1 where login_system=native and expire_timestamp>unix_timestamp(now())", function(err, result) {
         if(err)
         {            
             console.log(err.stack);
